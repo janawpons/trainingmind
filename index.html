@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Training Mind</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" type="image/png" href="images/logo.jpg">
+
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XZBS8V4TJ9"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-XZBS8V4TJ9');
+</script>
+
+</head>
+
+<body>
+
+<nav>
+  <div class="nav-left">
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+
+    <div class="language-switcher desktop-lang">
+      <button onclick="setLanguage('ca')">CA</button>
+      <button onclick="setLanguage('es')">ES</button>
+      <button onclick="setLanguage('en')">EN</button>
+    </div>
+  </div>
+
+  <h1 onclick="anarInici()">training mind</h1>
+
+  <div class="nav-right">
+    <ul id="nav-menu">
+      <button class="tab-btn active" onclick="canviarTab('inici', this)" data-i18n="navHome">Inici</button>
+      <button class="tab-btn" onclick="canviarTab('calendariPage', this)" data-i18n="navCalendar">Calendari</button>
+      <button class="tab-btn" onclick="canviarTab('evolucioPage', this)" data-i18n="navEvolution">Evolució</button>
+      <button class="tab-btn" onclick="canviarTab('ai', this)" data-i18n="navCoach">AI Coach</button>
+
+      <div class="language-switcher mobile-lang">
+        <button onclick="setLanguage('ca')">CA</button>
+        <button onclick="setLanguage('es')">ES</button>
+        <button onclick="setLanguage('en')">EN</button>
+      </div>
+    </ul>
+
+    <button class="login-btn" id="login-btn" onclick="login()">Login</button>
+    <button class="login-btn" id="logout-btn" onclick="logout()" style="display:none;">Logout</button>
+  </div>
+</nav>
+
+<main>
+
+  <section id="inici" class="tab active">
+
+  <section class="hero-scroll">
+  <div class="hero-sticky">
+
+    <div class="hero-content">
+      <p class="tag" data-i18n="heroTag">Pilates · Barre · Força · Benestar</p>
+      <h2 class="hero-title" data-i18n="heroTitle">
+        Registra els teus entrenaments i entén la teva evolució
+      </h2>
+
+      <p class="hero-text" data-i18n="heroText">
+        Guarda cada sessió, consulta el calendari i analitza el teu progrés.
+      </p>
+
+      <a href="#registre" class="btn">
+        <span data-i18n="heroButton">Registra el teu entrenament</span>
+        <span class="arrow-wrapper"><span class="arrow"></span></span>
+      </a>
+    </div>
+
+
+    <div class="hero-aura aura-1"></div>
+    <div class="hero-aura aura-2"></div>
+
+  </div>
+</section>
+
+  <section class="photo-marquee">
+  <div class="marquee-track">
+    <div class="photo-card"><img src="images/pilates.jpg" alt="Pilates" /></div>
+    <div class="photo-card"><img src="images/barre.jpg" alt="Barre" /></div>
+    <div class="photo-card"><img src="images/fitness.jpg" alt="Entrenament" /></div>
+    <div class="photo-card"><img src="images/stretch.jpg" alt="Mobilitat" /></div>
+
+    <!-- repetim les mateixes fotos per fer bucle infinit -->
+    <div class="photo-card"><img src="images/pilates.jpg" alt="Pilates" /></div>
+    <div class="photo-card"><img src="images/barre.jpg" alt="Barre" /></div>
+    <div class="photo-card"><img src="images/fitness.jpg" alt="Entrenament" /></div>
+    <div class="photo-card"><img src="images/stretch.jpg" alt="Mobilitat" /></div>
+  </div>
+</section>
+  <section id="registre" class="contact">
+    <div>
+      <p class="tag dark-tag" data-i18n="registerTag">Registre</p>
+      <h2 data-i18n="registerTitle">Com ha anat avui?</h2>
+    </div>
+
+    <form id="training-form">
+      <input type="date" id="data" required />
+
+      <select id="tipus" required>
+        <option value="" data-i18n="typePlaceholder">Tipus</option>
+        <option data-i18n="typePilates">Pilates</option>
+        <option data-i18n="typeBarre">Barre</option>
+        <option data-i18n="typeStrength">Força</option>
+        <option data-i18n="typeCardio">Cardio</option>
+      </select>
+
+      <select id="lloc" required>
+        <option value="" data-i18n="placePlaceholder">Lloc</option>
+        <option value="home" data-i18n="placeHome">Casa</option>
+        <option value="gymclass" data-i18n="placeGym">Gimnàs / Classe</option>
+<option value="outdoor" data-i18n="placeOutdoor">Exterior</option>
+      </select>
+
+      <input type="number" id="durada" data-i18n-placeholder="durationPlaceholder" placeholder="Durada (min)" required />
+      <div class="intensity-input">
+       <label>
+          <span data-i18n="intensityLabel">Intensitat</span>:
+          <span id="intensity-value">5</span>/10
+        </label>
+        <input type="range" id="intensitat" min="1" max="10" value="5" />
+      </div>
+      <textarea id="notes" data-i18n-placeholder="notesPlaceholder" placeholder="Notes..."></textarea>
+
+      <button type="submit" class="form-btn" data-i18n="saveButton">Guardar</button>
+    </form>
+  </section>
+
+</section>
+
+<section id="calendariPage" class="tab">
+
+  <section id="calendari" class="calendar-section">
+    <div class="calendar-wrap">
+
+      <div class="calendar-title-row">
+        <div>
+          <p class="tag dark-tag" data-i18n="calendarTag">Calendari</p>
+          <h2>
+            <span data-i18n="calendarTitlePrefix">Dies entrenats d’</span><span id="month-name" class="month-name">Abril</span>
+          </h2>
+        </div>
+
+        <div class="calendar-controls">
+          <button type="button" id="prev-month">←</button>
+          <button type="button" id="next-month">→</button>
+        </div>
+
+        <div class="goals-card">
+          <p id="monthly-goal-message" data-i18n="monthlyGoalDefault">Aquest mes has complert 0/0 setmanes</p>
+        </div>
+      </div>
+
+      <!-- VISTA CALENDARI NORMAL -->
+      <div id="calendar-view">
+        <div id="calendar" class="calendar"></div>
+
+        <!-- FILA 1 -->
+        <div class="legend-row top">
+          <div class="legend">
+            <span><b class="place-home-sample"></b> <span data-i18n="placeHome">Casa</span></span>
+            <span><b class="place-gymclass-sample"></b> <span data-i18n="placeGym">Gimnàs / Classe</span></span>
+            <span><b class="place-outdoor-sample"></b> <span data-i18n="placeOutdoor">Exterior</span></span>
+          </div>
+
+          <button class="annual-btn" onclick="mostrarVistaAnual()" data-i18n="annualSummary">
+            Resum anual
+          </button>
+        </div>
+
+        <!-- FILA 2 -->
+        <div class="legend-row">
+          <div class="legend">
+            <span><b class="type-pilates-dot"></b> Pilates</span>
+            <span><b class="type-barre-dot"></b> Barre</span>
+            <span><b class="type-strength-dot"></b> <span data-i18n="typeStrength">Força</span></span>
+            <span><b class="type-cardio-dot"></b> Cardio</span>
+          </div>
+        </div>
+
+        <div id="training-detail" class="training-detail" style="display: none;"></div>
+      </div>
+
+      <!-- VISTA RESUM ANUAL -->
+      <div id="annual-view" style="display: none;">
+        <div class="annual-top-row">
+          <button type="button" class="annual-btn" onclick="tornarCalendari()">
+            <span data-i18n="backCalendar">Tornar al calendari</span>
+          </button>
+        </div>
+
+        <div id="annual-calendar" class="annual-calendar"></div>
+      </div>
+
+    </div>
+  </section>
+</section>
+
+<section id="evolucioPage" class="tab">
+  <section id="progres" class="progress-section">
+  <p class="tag dark-tag" data-i18n="progressTag">Progrés</p>
+  <h2 data-i18n="progressTitle">La teva evolució</h2>
+
+  <div class="progress-grid">
+    <div class="progress-card">
+      <span id="total-trainings">0</span>
+      <p data-i18n="totalTrainings">Entrenaments totals</p>
+    </div>
+
+    <div class="progress-card">
+      <span id="total-minutes">0</span>
+        <p data-i18n="totalMinutes">Minuts acumulats</p>
+    </div>
+
+    <div class="progress-card">
+      <span id="avg-intensity">0</span>
+        <p data-i18n="avgIntensity">Intensitat mitjana</p>
+    </div>
+  </div>
+
+  <div class="weekly-progress-card">
+    <div class="weekly-progress-main">
+      <div>
+        <p class="progress-label" data-i18n="weeklyGoal">Objectiu setmanal</p>
+        <h3 id="weekly-progress-text">0 / 4 sessions</h3>
+      </div>
+    </div>
+
+    <div class="progress-bar">
+      <div id="weekly-progress-fill" class="progress-fill"></div>
+      <div id="progress-markers" class="progress-markers"></div>
+    </div>
+
+    <div class="goal-editor-card">
+      <div>
+        <p data-i18n="changeGoal">Canviar objectiu</p>
+        <span data-i18n="sessionsPerWeek">Sessions per setmana</span>
+      </div>
+
+      <div class="goal-editor">
+        <input type="number" id="weekly-goal-input" min="1" value="4" />
+        <button type="button" id="save-goal-btn" class="form-btn" data-i18n="saveButton">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+  <div class="chart-title-row">
+    <div>
+      <p class="progress-label" data-i18n="evolutionTag">Evolució</p>
+      <h3 data-i18n="intensityChartTitle">Intensitat dels entrenaments</h3>
+    </div>
+
+    <div class="chart-toggle">
+      <button type="button" class="chart-toggle-btn active" onclick="canviarGrafica('last10', this)" data-i18n="last10">
+        Últims 10
+      </button>
+      <button type="button" class="chart-toggle-btn" onclick="canviarGrafica('monthly', this)" data-i18n="monthlyAvg">
+        Mitjana mensual
+      </button>
+    </div>
+  </div>
+
+  <div id="intensity-chart" class="intensity-chart"></div>
+</div>
+  </section>
+</section>
+
+<section id="ai" class="tab ai-section">
+  <p class="tag dark-tag">AI Coach</p>
+  <h2 data-i18n="coachTitle">Parla amb el teu entrenador IA</h2>
+
+  <div class="chat-box">
+    <div id="chat-messages" class="chat-messages">
+      <p class="ai-message" data-i18n="coachWelcome">Hola! En què et puc ajudar?</p>
+    </div>
+
+    <div class="chat-input">
+      <div class="quick-questions">
+        <button onclick="pregunta('progres')" data-i18n="coachProgress">Com vaig?</button>
+        <button onclick="pregunta('setmana')" data-i18n="coachWeek">Objectiu setmanal</button>
+        <button onclick="pregunta('intensitat')" data-i18n="coachIntensity">Intensitat</button>
+        <button onclick="pregunta('millora')" data-i18n="coachImprove">Com millorar</button>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- MODAL CONFIRMACIÓ -->
+<div id="delete-modal" class="modal">
+  <div class="modal-box">
+    <h3 data-i18n="deleteTitle">Eliminar entrenament?</h3>
+    <p data-i18n="deleteText">Segur que vols eliminar aquest entrenament?</p>
+    <button id="cancel-delete" class="modal-cancel" data-i18n="cancelButton">Cancel·lar</button>
+    <button id="confirm-delete" class="modal-delete" data-i18n="deleteButton">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST UNDO -->
+<div id="undo-toast" class="undo-toast">
+  Entrenament eliminat
+  <button id="undo-btn">Desfer</button>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<footer class="footer">
+  <p data-i18n="footerCreated">Creat per Jana Pons · Training Mind</p>
+    <p>
+      <span data-i18n="footerContact">Contacte:</span>
+      <a href="mailto:janapons@gmail.com">janapons@gmail.com</a>
+    </p>
+</footer>
+
+<script src="script.js"></script>
+<script type="module" src="firebase.js"></script>
+</body>
+</html>
