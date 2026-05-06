@@ -232,33 +232,61 @@
         </p>
       </div>
 
-      <button class="form-btn" type="button" onclick="obrirFormRutina()">
+      <button class="form-btn" onclick="obrirFormRutina()" data-i18n="newRoutineButton">
         + Nova rutina
       </button>
     </div>
 
     <form id="routine-form" class="routine-form" style="display:none;">
-      <input type="text" id="routine-sport" placeholder="Esport / tipus d'entrenament" required>
-      <input type="text" id="routine-title" placeholder="Nom de la rutina" required>
-      <textarea id="routine-notes" placeholder="Notes generals..."></textarea>
+      <input
+        id="routine-sport"
+        type="text"
+        required
+        data-i18n-placeholder="routineSportPlaceholder"
+        placeholder="Tipus (Pilates, Força...)"
+      >
+
+      <input
+        id="routine-title"
+        type="text"
+        required
+        data-i18n-placeholder="routineNamePlaceholder"
+        placeholder="Nom de la rutina"
+      >
+
+      <textarea
+        id="routine-notes"
+        data-i18n-placeholder="routineNotesPlaceholder"
+        placeholder="Notes generals..."
+      ></textarea>
 
       <div class="routine-form-actions">
-        <button type="submit" class="form-btn">Guardar rutina</button>
-        <button type="button" class="routine-cancel-btn" onclick="tancarFormRutina()">Cancel·lar</button>
+        <button class="form-btn" type="submit" data-i18n="saveRoutineButton">
+          Guardar rutina
+        </button>
+
+        <button
+          type="button"
+          class="routine-cancel-btn"
+          onclick="tancarFormRutina()"
+          data-i18n="cancelButton"
+        >
+          Cancel·lar
+        </button>
       </div>
     </form>
 
     <form id="exercise-form" class="routine-form" style="display:none;">
-      <input type="text" id="exercise-name" placeholder="Nom de l’exercici" required>
-      <input type="number" id="exercise-sets" placeholder="Sèries">
-      <input type="number" id="exercise-reps" placeholder="Repeticions">
-      <input type="number" id="exercise-weight" placeholder="Pes (kg)">
-      <input type="text" id="exercise-time" placeholder="Temps / durada">
-      <textarea id="exercise-notes" placeholder="Notes..."></textarea>
+      <input type="text" id="exercise-name" data-i18n-placeholder="exerciseName" required>
+      <input type="number" id="exercise-sets" data-i18n-placeholder="exerciseSets">
+      <input type="number" id="exercise-reps" data-i18n-placeholder="exerciseReps">
+      <input type="number" id="exercise-weight" data-i18n-placeholder="exerciseWeight">
+      <input type="text" id="exercise-time" data-i18n-placeholder="exerciseTime">
+      <textarea id="exercise-notes" data-i18n-placeholder="notesPlaceholder"></textarea>
 
       <div class="routine-form-actions">
-        <button type="submit" class="form-btn">Guardar exercici</button>
-        <button type="button" class="routine-cancel-btn" onclick="tancarFormExercici()">Cancel·lar</button>
+        <button type="submit" class="form-btn" data-i18n="saveExerciseButton">Guardar exercici</button>
+        <button type="button" class="routine-cancel-btn" onclick="tancarFormExercici()" data-i18n="cancelButton">Cancel·lar</button>
       </div>
     </form>
 
@@ -446,9 +474,11 @@
   </div>
 </div>
 
-<button class="calendar-floating-btn" onclick="canviarTab('calendariPage')">
-  📅
-</button>
+<div class="floating-mobile-actions">
+  <button onclick="canviarTab('calendariPage')">📅</button>
+  <button onclick="canviarTab('ai')">✦</button>
+</div>
+
 <nav class="mobile-bottom-nav">
   <button onclick="canviarTab('inici')">⌂<span data-i18n="navHome">Inici</span></button>
   <button onclick="canviarTab('evolucioPage')">↗<span data-i18n="navEvolution">Progrés</span></button>
