@@ -39,20 +39,20 @@ function obrirRutina(id) {
 
   routinesGrid.innerHTML = `
     <div class="routine-detail-card full">
-      <button class="routine-back-btn" onclick="tornarLlistaRutines()">← Tornar</button>
+      <button class="routine-back-btn" onclick="tornarLlistaRutines()">← ${t("backButton")}</button>
 
       <span class="routine-color big" style="background:${colorTipus(routine.sport)}"></span>
       <h3>${routine.title}</h3>
       <p><strong>${routine.sport}</strong></p>
-      <p>${routine.notes || "Sense notes generals"}</p>
+      <p>${routine.notes || t("noGeneralNotes")}</p>
 
       <button class="form-btn" type="button" onclick="obrirFormExercici('${routine.id}')">
-        + Afegir exercici
+       ${t("addExercise")}
       </button>
 
       <div class="exercises-list">
         ${exercises.length === 0 ? `
-          <p class="empty-exercises">Encara no tens exercicis en aquesta rutina.</p>
+          <p class="empty-exercises">${t("noExercises")}</p>
         ` : exercises.map((ex, index) => `
           <div class="exercise-card" data-exercise-index="${index}">
             <div class="exercise-main">
@@ -65,7 +65,7 @@ function obrirRutina(id) {
               </div>
 
               <p>
-                ${ex.sets ? `${ex.sets} sèries` : ""}
+                ${ex.sets ? `${ex.sets} num` : ""}
                 ${ex.reps ? ` · ${ex.reps} reps` : ""}
                 ${ex.weight ? ` · ${ex.weight} kg` : ""}
                 ${ex.time ? ` · ${ex.time}` : ""}
@@ -75,8 +75,8 @@ function obrirRutina(id) {
             </div>
 
             <div class="exercise-actions">
-              <button type="button" onclick="editarExercici('${routine.id}', ${index})">Editar</button>
-              <button type="button" class="exercise-delete-btn" onclick="eliminarExercici('${routine.id}', ${index})">Eliminar</button>
+              <button type="button" onclick="editarExercici('${routine.id}', ${index})">${t("editExercise")}</button>
+              <button type="button" class="exercise-delete-btn" onclick="eliminarExercici('${routine.id}', ${index})">${t("deleteExercise")}</button>
             </div>
           </div>
         `).join("")}
@@ -152,21 +152,23 @@ function tancarFormRutina() {
   routineForm.reset();
 }
 
-routineForm.addEventListener("submit", async function(e) {
-  e.preventDefault();
+if (routineForm) {
+  routineForm.addEventListener("submit", async function(e) {
+    e.preventDefault();
 
-  const routine = {
-    sport: document.getElementById("routine-sport").value.trim(),
-    title: document.getElementById("routine-title").value.trim(),
-    notes: document.getElementById("routine-notes").value.trim(),
-    exercises: []
-  };
+    const routine = {
+      sport: document.getElementById("routine-sport").value.trim(),
+      title: document.getElementById("routine-title").value.trim(),
+      notes: document.getElementById("routine-notes").value.trim(),
+      exercises: []
+    };
 
-  await guardarRutinaFirebase(routine);
+    await guardarRutinaFirebase(routine);
 
-  tancarFormRutina();
-  mostrarToast("Rutina guardada");
-});
+    tancarFormRutina();
+    mostrarToast(t("routineSaved"));
+  });
+}
 
 function pintarRutines() {
   if (!routinesGrid) return;
@@ -187,7 +189,7 @@ function pintarRutines() {
       <span class="routine-color" style="background:${colorTipus(routine.sport)}"></span>
       <h3>${routine.sport}</h3>
       <p>${routine.title}</p>
-      <small>${(routine.exercises || []).length} exercicis</small>
+      <small>${(routine.exercises || []).length} ${t("exercisesCount")}</small>
     </button>
 
     <button 
@@ -219,7 +221,7 @@ document.getElementById("confirm-delete-routine").addEventListener("click", asyn
   pendingDeleteRoutineId = null;
   document.getElementById("delete-routine-modal").classList.remove("show");
 
-  mostrarToast("Rutina eliminada");
+  mostrarToast(t("routineDeleted"));
 });
 
 function tornarLlistaRutines() {
@@ -269,9 +271,9 @@ await actualitzarRutinaFirebase(activeRoutineId, {
 });
 
 tancarFormExercici();
-document.querySelector("#exercise-form .form-btn").textContent = "Guardar exercici";
+document.querySelector("#exercise-form .form-btn").textContent = t("saveExerciseButton");
 obrirRutina(activeRoutineId);
-mostrarToast("Exercici guardat");
+mostrarToast(t("exerciseSaved"));
 });
 
 function editarExercici(routineId, index) {
@@ -291,7 +293,7 @@ function editarExercici(routineId, index) {
   document.getElementById("exercise-time").value = ex.time || "";
   document.getElementById("exercise-notes").value = ex.notes || "";
 
-  document.querySelector("#exercise-form .form-btn").textContent = "Actualitzar exercici";
+  document.querySelector("#exercise-form .form-btn").textContent = t("updateExercise");
   exerciseForm.style.display = "flex";
 
   exerciseForm.scrollIntoView({
@@ -312,7 +314,7 @@ async function eliminarExercici(routineId, index) {
   });
 
   obrirRutina(routineId);
-  mostrarToast("Exercici eliminat");
+  mostrarToast(t("exerciseDeleted"));
 }
 
 function anarARegistrarAvui() {
@@ -335,6 +337,25 @@ const translations = {
     navCalendar: "Calendari",
     navEvolution: "Evolució",
     navCoach: "AI Coach",
+
+    saveExerciseButton: "Guardar exercici",
+    backButton: "Tornar",
+    noGeneralNotes: "Sense notes generals",
+    loginToSaveR: "Has de fer login per guardar rutines",
+    loginToSaveTrain: "Has de fer login per guardar entrenaments",
+    loginToDeleteTrain:"Has de fer login per eliminar entrenaments",
+
+    noIntensityData: "Encara no hi ha dades d'intensitat.",
+    exercisesCount: "exercicis",
+    sessionsLabel: "sessions",
+    trainingUpdateButton: "Actualitzar",
+    coachGoalReached: "Aquesta setmana portes {current}/{goal} sessions. Has complert l’objectiu setmanal, molt bé 🔥",
+    coachGoalPending: "Aquesta setmana portes {current}/{goal} sessions. Et falten {remaining} sessió/ns per arribar a l’objectiu. Encara hi ets a temps.",
+
+    congratsGoal: "Felicitats! Has completat el teu objectiu setmanal ✨ Segueix així!",
+    loginFail:"Error iniciant sessió",
+    trainingUpdated: "Entrenament actualitzat",
+    trainingSaved: "Entrenament guardat",
 
     heroTag: "Pilates · Barre · Força · Benestar",
     heroTitle: "Registra els teus entrenaments i entén la teva evolució",
@@ -362,11 +383,28 @@ const translations = {
     notesPlaceholder: "Notes...",
     saveButton: "Guardar",
 
+    routineSportPlaceholder: "Tipus (Pilates, Força...)",
+    routineNamePlaceholder: "Nom de la rutina",
+    routineNotesPlaceholder: "Notes generals...",
+    saveRoutineButton: "Guardar rutina",
+
+    noExercises: "Encara no tens exercicis en aquesta rutina.",
+    addExercise: "+ Afegir exercici",
+    editExercise: "Editar",
+    deleteExercise: "Eliminar",
+    updateExercise: "Actualitzar exercici",
+
     calendarTag: "Calendari",
     calendarTitlePrefix: "Dies entrenats d’",
     monthlyGoalDefault: "Aquest mes has complert 0/0 setmanes",
     annualSummary: "Resum anual",
     backCalendar: "Tornar al calendari",
+
+    exerciseName: "Nom de l’exercici",
+    exerciseSets: "Sèries",
+    exerciseReps: "Repeticions",
+    exerciseWeight: "Pes (kg)",
+    exerciseTime: "Temps / durada",
 
     navRoutines: "Rutines",
     routinesTag: "Rutines",
@@ -374,6 +412,9 @@ const translations = {
     routinesSubtitle: "Organitza les teves rutines per esport i guarda els exercicis que fas habitualment.",
     routinesEmptyTitle: "Encara no tens rutines",
     routinesEmptyText: "Crea la teva primera rutina per esport: Pilates, Cardio, Força, Rem...",
+
+    newRoutineButton: "+ Nova rutina",
+    saveRoutineButton: "Guardar rutina",
 
     progressTag: "Progrés",
     progressTitle: "La teva evolució",
@@ -441,6 +482,26 @@ const translations = {
     navEvolution: "Evolución",
     navCoach: "AI Coach",
 
+    saveExerciseButton: "Guardar ejercicio",
+    backButton: "Volver",
+    noGeneralNotes: "Sin notas generales",
+
+    noIntensityData: "Aún no hay datos de intensidad.",
+    exercisesCount: "ejercicios",
+    sessionsLabel: "sesiones",
+    trainingUpdateButton: "Actualizar",
+    loginToSaveR: "Tienes que hacer login para guardar rutinas",
+    loginToSaveTrain: "Tienes que hacer login para guardar entrenamientos",
+    loginToDeleteTrain:"Tienes que hacer login para eliminar entrenamientos",
+
+    coachGoalReached: "Esta semana llevas {current}/{goal} sesiones. Has cumplido el objetivo semanal, muy bien 🔥",
+    coachGoalPending: "Esta semana llevas {current}/{goal} sesiones. Te faltan {remaining} sesión/es para llegar al objetivo. Aún estás a tiempo.",
+
+    congratsGoal: "¡Felicidades! Has completado tu objetivo semanal ✨ ¡Sigue así!",
+    loginFail:"Error iniciando sessión",
+    trainingUpdated: "Entrenamiento actualizado",
+    trainingSaved: "Entrenamiento guardado",
+
     heroTag: "Pilates · Barre · Fuerza · Bienestar",
     heroTitle: "Registra tus entrenamientos y entiende tu evolución",
     heroText: "Guarda cada sesión, consulta el calendario y analiza tu progreso.",
@@ -467,11 +528,28 @@ const translations = {
     notesPlaceholder: "Notas...",
     saveButton: "Guardar",
 
+    routineSportPlaceholder: "Tipo (Pilates, Fuerza...)",
+    routineNamePlaceholder: "Nombre de la rutina",
+    routineNotesPlaceholder: "Notas generales...",
+    saveRoutineButton: "Guardar rutina",
+
+    noExercises: "Aún no tienes ejercicios en esta rutina.",
+    addExercise: "+ Añadir ejercicio",
+    editExercise: "Editar",
+    deleteExercise: "Eliminar",
+    updateExercise: "Actualizar ejercicio",
+    
     calendarTag: "Calendario",
     calendarTitlePrefix: "Días entrenados de ",
     monthlyGoalDefault: "Este mes has cumplido 0/0 semanas",
     annualSummary: "Resumen anual",
     backCalendar: "Volver al calendario",
+
+    exerciseName: "Nombre del ejercicio",
+    exerciseSets: "Series",
+    exerciseReps: "Repeticiones",
+    exerciseWeight: "Peso (kg)",
+    exerciseTime: "Tiempo / duración",
 
     navRoutines: "Rutinas",
     routinesTag: "Rutinas",
@@ -479,6 +557,9 @@ const translations = {
     routinesSubtitle: "Organiza tus rutinas por deporte y guarda los ejercicios que haces habitualmente.",
     routinesEmptyTitle: "Aún no tienes rutinas",
     routinesEmptyText: "Crea tu primera rutina por deporte: Pilates, Cardio, Fuerza, Remo...",
+
+    newRoutineButton: "+ Nueva rutina",
+    saveRoutineButton: "Guardar rutina",
 
     progressTag: "Progreso",
     progressTitle: "Tu evolución",
@@ -545,6 +626,26 @@ const translations = {
     navEvolution: "Progress",
     navCoach: "AI Coach",
 
+    saveExerciseButton: "Save the exercise",
+    backButton: "Return",
+    noGeneralNotes: "Without general notes",
+
+    loginToSaveR: "You must log in to save routines",
+    loginToSaveTrain: "You must log in to save workouts",
+    loginToDeleteTrain:"You must be logged in to delete workouts",
+
+    noIntensityData: "There is no intensity data yet.",
+    exercisesCount: "exercises",
+    sessionsLabel: "sessions",
+    trainingUpdateButton: "Update",
+    coachGoalReached: "This week you have completed {current}/{goal} sessions. You reached your weekly goal, great job 🔥",
+    coachGoalPending: "This week you have completed {current}/{goal} sessions. You need {remaining} more session(s) to reach your goal. You're still on time.",
+
+    congratsGoal: "Congratulations! You've completed your weekly goal ✨ Keep it up!",
+    loginFail:"Error logging in",
+    trainingUpdated: "Workout updated",
+    trainingSaved: "Workout saved",
+
     heroTag: "Pilates · Barre · Strength · Wellness",
     heroTitle: "Log your workouts and understand your progress",
     heroText: "Save each session, check the calendar and analyze your progress.",
@@ -571,11 +672,28 @@ const translations = {
     notesPlaceholder: "Notes...",
     saveButton: "Save",
 
+    routineSportPlaceholder: "Type (Pilates, Strength...)",
+    routineNamePlaceholder: "Routine name",
+    routineNotesPlaceholder: "General notes...",
+    saveRoutineButton: "Save routine",
+
+    noExercises: "You don’t have exercises in this routine yet.",
+    addExercise: "+ Add exercise",
+    editExercise: "Edit",
+    deleteExercise: "Delete",
+    updateExercise: "Update exercise",  
+
     calendarTag: "Calendar",
     calendarTitlePrefix: "Training days in ",
     monthlyGoalDefault: "This month you completed 0/0 weeks",
     annualSummary: "Year summary",
     backCalendar: "Back to calendar",
+
+    exerciseName: "Name of the exercise",
+    exerciseSets: "Series",
+    exerciseReps: "Repetitions",
+    exerciseWeight: "Weight (kg)",
+    exerciseTime: "Time / duration",
 
     navRoutines: "Routines",
     routinesTag: "Routines",
@@ -583,6 +701,9 @@ const translations = {
     routinesSubtitle: "Organize your routines by sport and save the exercises you usually do.",
     routinesEmptyTitle: "You don’t have routines yet",
     routinesEmptyText: "Create your first routine by sport: Pilates, Cardio, Strength, Rowing...",
+
+    newRoutineButton: "+ New routine",
+    saveRoutineButton: "Save routine",
 
     progressTag: "Progress",
     progressTitle: "Your progress",
@@ -771,7 +892,7 @@ async function carregarRutinesFirebase() {
 
 async function guardarRutinaFirebase(routine) {
   if (!currentUser) {
-    mostrarToast("Has de fer login per guardar rutines");
+    mostrarToast(t("loginToSaveR"));
     return;
   }
 
@@ -821,34 +942,13 @@ async function carregarEntrenamentsFirebase() {
 // WEB REAL 
 async function guardarEntrenamentFirebase(training) {
   if (!currentUser) {
-    mostrarToast("Has de fer login per guardar entrenaments");
+    mostrarToast(t("loginToSaveTrain"));
     return;
   }
 
   await window.addDoc(getUserTrainingsCollection(), training);
   await carregarEntrenamentsFirebase();
 }
-
-/* EXECUTABLE 
-async function guardarEntrenamentFirebase(training) {
-  if (!currentUser) {
-    trainings.push({
-      id: Date.now(),
-      ...training
-    });
-
-    localStorage.setItem("trainings-demo", JSON.stringify(trainings));
-
-    pintarCalendari();
-    actualitzarProgres();
-
-    mostrarToast("Entrenament guardat en mode demo");
-    return;
-  }
-
-  await window.addDoc(getUserTrainingsCollection(), training);
-  await carregarEntrenamentsFirebase();
-}*/
 
 async function actualitzarEntrenamentFirebase(id, training) {
   if (!currentUser) return;
@@ -860,7 +960,7 @@ async function actualitzarEntrenamentFirebase(id, training) {
 
 async function eliminarEntrenamentFirebase(id) {
   if (!currentUser) {
-    mostrarToast("Has de fer login per eliminar entrenaments");
+    mostrarToast(t("loginToDeleteTrain"));
     return;
   }
 
@@ -1004,7 +1104,7 @@ form.addEventListener("submit", async function(e) {
   tipusAltresInput.required = false;
   tipusAltresInput.value = "";
 
-  mostrarToast(isEditing ? "Entrenament actualitzat" : "Entrenament guardat");
+  mostrarToast(isEditing ? t("trainingUpdated") : t("trainingSaved"));
   
 });
 
@@ -1241,7 +1341,7 @@ function editarEntrenament(id) {
   document.getElementById("intensitat").value = training.intensitat;
   document.getElementById("notes").value = training.notes || "";
 
-  document.querySelector("#training-form .form-btn").textContent = "Actualitzar";
+  document.querySelector("#training-form .form-btn").textContent = t("trainingUpdateButton");
 
   canviarTab("inici");
 
@@ -1341,7 +1441,7 @@ function actualitzarProgres() {
   const percent = Math.min((sessionsThisWeek / weeklyGoal) * 100, 100);
 
   document.getElementById("weekly-progress-text").textContent =
-    `${sessionsThisWeek} / ${weeklyGoal} sessions`;
+    `${sessionsThisWeek} / ${weeklyGoal} ${t("sessionsLabel")}`;
 
   document.getElementById("weekly-progress-fill").style.width = `${percent}%`;
 
@@ -1363,39 +1463,45 @@ function calcularObjectiuMensual() {
     any === avui.getFullYear() &&
     mes === avui.getMonth();
 
-  const ultimDiaAComptar = esMesActual
-    ? avui.getDate()
-    : new Date(any, mes + 1, 0).getDate();
+  const ultimDiaMes = new Date(any, mes + 1, 0);
+
+  let iniciMes = new Date(any, mes, 1);
+  let fiMes = esMesActual ? avui : ultimDiaMes;
+
+  // 👉 anar al dilluns anterior (inici setmana real)
+  iniciMes = obtenirDilluns(iniciMes);
 
   const setmanes = {};
 
-  for (let dia = 1; dia <= ultimDiaAComptar; dia++) {
-    const data = new Date(any, mes, dia);
-    const dilluns = obtenirDilluns(data);
+  let cursor = new Date(iniciMes);
+
+  while (cursor <= fiMes) {
+    const dilluns = obtenirDilluns(cursor);
     const clau = dilluns.toISOString().split("T")[0];
 
     if (!setmanes[clau]) {
       setmanes[clau] = 0;
     }
+
+    cursor.setDate(cursor.getDate() + 7);
   }
 
+  // comptar entrenaments
   trainings.forEach(t => {
     const data = new Date(t.data + "T00:00:00");
 
-    if (data.getFullYear() !== any || data.getMonth() !== mes) return;
-    if (data.getDate() > ultimDiaAComptar) return;
+    if (data < iniciMes || data > fiMes) return;
 
     const dilluns = obtenirDilluns(data);
     const clau = dilluns.toISOString().split("T")[0];
 
-    if (!setmanes[clau]) {
-      setmanes[clau] = 0;
-    }
+    if (!setmanes[clau]) setmanes[clau] = 0;
 
     setmanes[clau]++;
   });
 
   const totalsSetmanes = Object.keys(setmanes).length;
+
   const setmanesComplertes = Object.values(setmanes)
     .filter(total => total >= weeklyGoal).length;
 
@@ -1469,7 +1575,7 @@ function comprovarObjectiuSetmanalAssolit() {
   const sessionsSetmana = calcularSessionsSetmanaActual();
 
   if (sessionsSetmana === weeklyGoal) {
-    mostrarToast("Felicitats! Has completat el teu objectiu setmanal ✨ Segueix així!");
+    mostrarToast(t("congratsGoal"));
   }
 }
 
@@ -1560,11 +1666,18 @@ if (
   pregunta.includes("sessions em falten") ||
   pregunta.includes("he complert")
 ) {
-  if (sessionsSetmana >= weeklyGoal) {
-    return `Aquesta setmana portes ${sessionsSetmana}/${weeklyGoal} sessions. Has complert l’objectiu setmanal, molt bé 🔥`;
-  }
 
-  return `Aquesta setmana portes ${sessionsSetmana}/${weeklyGoal} sessions. Et falten ${weeklyGoal - sessionsSetmana} sessió/ns per arribar a l’objectiu. Encara hi ets a temps.`;
+  if (sessionsSetmana >= weeklyGoal) {
+  return t("coachGoalReached")
+    .replace("{current}", sessionsSetmana)
+    .replace("{goal}", weeklyGoal);
+}
+
+return t("coachGoalPending")
+  .replace("{current}", sessionsSetmana)
+  .replace("{goal}", weeklyGoal)
+  .replace("{remaining}", weeklyGoal - sessionsSetmana);
+
 }
 
 if (
@@ -1965,7 +2078,7 @@ function pintarGraficaIntensitat() {
   }
 
   if (dades.length === 0 || dades.every(d => d.value === 0)) {
-    chart.innerHTML = "<p class='chart-empty'>Encara no hi ha dades d'intensitat.</p>";
+    chart.innerHTML = `<p class='chart-empty'>${t("noIntensityData")}</p>`;
     return;
   }
 
@@ -2015,7 +2128,7 @@ function login() {
   window.signInWithPopup(window.firebaseAuth, provider)
     .catch(error => {
       console.error(error);
-      mostrarToast("Error iniciant sessió");
+      mostrarToast(t("loginFail"));
     });
 }
 
