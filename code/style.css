@@ -14,6 +14,90 @@ body {
   color: #111;
 }
 
+.welcome-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(247, 245, 241, 0.45);
+  backdrop-filter: blur(12px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 500;
+  padding: 20px;
+}
+
+.welcome-modal.show {
+  display: flex;
+}
+
+.welcome-card {
+  position: relative;
+  width: min(420px, 92vw);
+  padding: 34px;
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 200, 221, 0.65), transparent 38%),
+    radial-gradient(circle at 90% 20%, rgba(210, 216, 255, 0.75), transparent 42%),
+    rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 35px 90px rgba(0,0,0,0.16);
+  border: 1px solid rgba(255,255,255,0.75);
+}
+
+.welcome-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  border: none;
+  background: rgba(255,255,255,0.65);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.welcome-small {
+  color: #777;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+
+.welcome-card h2 {
+  font-size: 44px;
+  letter-spacing: -2px;
+  margin-bottom: 16px;
+}
+
+.welcome-text {
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 26px;
+}
+
+.welcome-login-btn {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 999px;
+  background: #111;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.welcome-secondary {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #555;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* NAV */
 
 nav {
@@ -25,29 +109,6 @@ nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-nav h1 {
-  position: fixed;
-  left: 50%;
-  top: 22%;
-  transform: translate(-50%, -50%);
-  font-size: clamp(60px, 8.5vw, 140px);
-
-  cursor: pointer;
-
-  letter-spacing: -2.5px;
-  font-family:  'Helvetica', serif;
-  font-weight: 800;
-  white-space: nowrap;
-  transition: 0.45s ease;
-  z-index: 30;
-}
-
-nav.scrolled h1 {
-  top: 40px;
-  font-size: 22px;
-  letter-spacing: 0.5px;
 }
 
 .menu-toggle {
@@ -81,17 +142,42 @@ nav.scrolled h1 {
   font-weight: 700;
   cursor: pointer;
 }
+nav h1.logo {
+  position: fixed;
+  left: 50%;
+  top: 22%;
+  transform: translate(-50%, -50%);
+  z-index: 30;
+  cursor: pointer;
+  transition: 0.45s ease;
+}
+
+.logo img {
+  width: clamp(260px, 35vw, 620px);
+  height: auto;
+  display: block;
+  transition: 0.45s ease;
+}
+
+nav.scrolled h1.logo {
+  top: 40px;
+}
+
+nav.scrolled .logo img {
+  width: 130px;
+}
 
 /* Amaga el títol del nav fora de la pàgina inicial */
 body:not(.home-active):not(.force-small) nav h1 {
   display: none;
 }
 
-body.force-small nav h1 {
-  top: 28px;
-  font-size: 22px;
-  letter-spacing: 0.5px;
-  transform: translateX(-50%);
+body.force-small nav h1.logo {
+  top: 44px;
+}
+
+body.force-small nav h1.logo img {
+  width: 130px;
 }
 nav ul {
   display: flex;
@@ -125,6 +211,272 @@ nav ul {
 .tab-btn:hover::after,
 .tab-btn.active::after {
   transform: scaleX(1);
+}
+
+/* RUTINES */
+
+.routines-section {
+  min-height: 100vh;
+  padding: 120px 6%;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.routines-section::before {
+  content: "";
+  position: absolute;
+  width: 620px;
+  height: 620px;
+  right: -120px;
+  top: 80px;
+  background: radial-gradient(circle, rgba(120,140,255,0.28), transparent 70%);
+  filter: blur(80px);
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.routines-section::after {
+  content: "";
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  left: -120px;
+  bottom: -100px;
+  background: radial-gradient(circle, rgba(200,170,255,0.32), transparent 70%);
+  filter: blur(75px);
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.routines-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 28px;
+  margin-bottom: 34px;
+}
+
+.routines-header h2 {
+  font-size: 64px;
+  line-height: 0.95;
+}
+
+.routines-subtitle {
+  margin-top: 18px;
+  max-width: 580px;
+  color: #666;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.routines-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 18px;
+}
+
+.routine-empty-card {
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.8);
+  border-radius: 28px;
+  padding: 26px;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.06);
+}
+
+.routine-empty-card h3 {
+  font-size: 26px;
+  letter-spacing: -1px;
+  margin-bottom: 10px;
+}
+
+.routine-empty-card p {
+  color: #666;
+  line-height: 1.45;
+}
+
+/* targetes rutines */
+.routine-form {
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.8);
+  border-radius: 28px;
+  padding: 24px;
+  margin-bottom: 26px;
+  max-width: 520px;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.routine-form-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.routine-cancel-btn {
+  border: none;
+  background: transparent;
+  color: #666;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.routine-card,
+.routine-detail-card {
+  text-align: left;
+  background: rgba(255,255,255,0.74);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.85);
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.06);
+}
+
+.routine-card {
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.routine-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 28px 80px rgba(0,0,0,0.09);
+}
+
+.routine-color {
+  width: 38px;
+  height: 12px;
+  border-radius: 999px;
+  display: block;
+  margin-bottom: 18px;
+}
+
+.routine-color.big {
+  width: 64px;
+  height: 16px;
+}
+
+.routine-card h3,
+.routine-detail-card h3 {
+  font-size: 28px;
+  letter-spacing: -1px;
+  margin-bottom: 8px;
+}
+
+.routine-card p,
+.routine-detail-card p {
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.routine-card small {
+  color: #888;
+  font-weight: 700;
+}
+
+.routine-back-btn {
+  border: none;
+  background: transparent;
+  font-weight: 800;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+/* exercicis */
+.routine-detail-card.full {
+  grid-column: 1 / -1;
+}
+
+.exercises-list {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.exercise-card {
+  background: #f7f5f1;
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  cursor: grab;
+}
+
+.exercise-card h4 {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.exercise-card.dragging {
+  opacity: 0.45;
+}
+
+.exercise-main {
+  flex: 1;
+}
+
+.exercise-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.drag-handle {
+  font-size: 24px;
+  font-weight: 800;
+  color: #777;
+  cursor: grab;
+  line-height: 1;
+  touch-action: none;
+  user-select: none;
+}
+
+.exercise-card.dragging {
+  opacity: 0.45;
+  transform: scale(0.98);
+}
+
+.exercise-card p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.exercise-card small {
+  display: block;
+  margin-top: 6px;
+  color: #888;
+}
+.exercise-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.exercise-actions button {
+  border: none;
+  background: white;
+  color: #333;
+  padding: 9px 13px;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.exercise-actions .exercise-delete-btn {
+  background: #f0d6d6;
+  color: #8a1f1f;
+}
+
+.empty-exercises {
+  color: #777;
+  margin-top: 16px;
 }
 
 /* TABS */
@@ -446,6 +798,37 @@ textarea:focus {
 .form-btn:hover {
   transform: translateY(-3px);
   box-shadow: 0 14px 28px rgba(0,0,0,0.15);
+}
+
+.routine-card-wrapper {
+  position: relative;
+}
+
+.routine-card-wrapper .routine-card {
+  width: 100%;
+  height: 100%;
+}
+
+.routine-delete-circle {
+  position: absolute;
+  top: 14px;
+  right: 20px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgb(231, 226, 226);
+  color: #8a1f1f;
+  cursor: pointer;
+  font-size: 15px;
+  display: grid;
+  place-items: center;
+  transition: 0.2s;
+}
+
+.routine-delete-circle:hover {
+  transform: scale(1.08);
+  background: #ee9090;
 }
 
 /* PROGRÉS */
@@ -776,35 +1159,21 @@ textarea:focus {
 
 .training-stripes {
   position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
-  height: 18px;
+  left: 12px;
+  right: 12px;
+  bottom: 14px;
+  height: 22px;
   display: flex;
-  gap: 4px;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
 }
 
 .training-stripe {
-  flex: 1;
+  height: 16px;
+  flex: 1 1 auto;
   border-radius: 999px;
 }
-
-/* COLORS TIPUS */
-.type-pilates { background: #b99ade; }
-.type-barre { background: #f3a8bd; }
-.type-strength { background: #9fb3f5; }
-.type-cardio { background: #f0bc8a; }
-
-/* CONTORNS LLOC */
-.type-pilates.place-gymclass { box-shadow: 0 0 0 2px #7e5bcf; }
-.type-barre.place-gymclass { box-shadow: 0 0 0 2px #d96a8f; }
-.type-strength.place-gymclass { box-shadow: 0 0 0 2px #5a74d6; }
-.type-cardio.place-gymclass { box-shadow: 0 0 0 2px #c47c3c; }
-
-.type-pilates.place-outdoor { border: 2px dotted #7e5bcf; }
-.type-barre.place-outdoor { border: 2px dotted #d96a8f; }
-.type-strength.place-outdoor { border: 2px dotted #5a74d6; }
-.type-cardio.place-outdoor { border: 2px dotted #c47c3c; }
 
 /* LLEGENDA - FILA 1 (llocs + botó) */
 .legend-row.top {
@@ -1441,13 +1810,183 @@ textarea:focus {
 /* =========================
    MOBILE RESPONSIVE FINAL
 ========================= */
+.mobile-bottom-nav {
+  display: none;
+}
+.calendar-floating-btn {
+  display: none;
+}
 
 @media (max-width: 600px) {
-  body {
-    overflow-x: hidden;
+  .mobile-bottom-nav {
+    position: fixed !important;
+    left: 16px;
+    right: 16px;
+    bottom: 26px;
+    top: auto !important;
+
+    height: 66px;
+    background: rgba(255,255,255,0.94);
+    backdrop-filter: blur(18px);
+    border-radius: 32px;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.14);
+
+    display: grid;
+    grid-template-columns: 1fr 1fr 76px 1fr 1fr;
+    align-items: center;
+    z-index: 999;
   }
 
+  .mobile-bottom-nav button {
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    font-weight: 800;
+    color: #111;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+  }
+
+  .mobile-bottom-nav span {
+    font-size: 10px;
+    color: #666;
+  }
+
+  .mobile-add-btn {
+    width: 58px;
+    height: 58px;
+    border-radius: 999px !important;
+    background: #eff3cb !important;
+    font-size: 32px !important;
+    justify-self: center;
+    transform: translateY(-4px);
+    box-shadow: 0 14px 34px rgba(174, 181, 115, 0.35);
+  }
+
+  body {
+    padding-bottom: 100px;
+  }
+
+  main {
+    padding-bottom: 0px;
+  }
+
+  .profile-section {
+  padding: 120px 6%;
+}
+
+.profile-card {
+  max-width: 380px;
+  margin: 9px;
+  text-align: center;
+  background: white;
+  padding: 24px;
+  border-radius: 24px;
+}
+
+.profile-card img {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  margin-bottom: 14px;
+}
+
+#login-btn,
+#logout-btn {
+  display: none !important;
+}
+
+.profile-login-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.profile-login-actions .login-btn {
+  display: block !important;
+  width: 100%;
+  height: 44px;
+  font-size: 14px;
+}
+
+.calendar-title-row {
+  position: relative;
+}
+
+.calendar-wrap {
+  position: relative;
+}
+
+.calendar-floating-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: fixed;
+    top: 25px;
+    right: 15px;
+
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+
+    background: rgba(254, 255, 244, 0.585);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+
+    z-index: 1000;
+    cursor: pointer;
+  }
+
+.calendar-floating-btn span {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #111;
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+.calendar-floating-btn:hover {
+  transform: translateY(-2px);
+}
+
+.profile-language-switcher {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.profile-language-switcher button {
+  border: 1px solid rgba(0,0,0,0.1);
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 999px;
+
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.profile-language-switcher button:hover {
+  background: #111;
+  color: white;
+  transform: translateY(-2px);
+}
+
+
   nav {
+  z-index: 50;
   top: 18px;
   left: 4%;
   right: 4%;
@@ -1474,20 +2013,9 @@ textarea:focus {
   display: flex !important;
 }
 
-.menu-toggle {
-  display: block;
-  border: none;
-  background: rgba(255,255,255,0.9);
-  border-radius: 999px;
-  padding: 10px 13px;
-  font-size: 18px;
-  cursor: pointer;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-}
-
-nav h1,
-nav.scrolled h1,
-body.force-small nav h1 {
+nav h1:not(.logo),
+nav.scrolled h1:not(.logo),
+body.force-small nav h1:not(.logo) {
   position: static;
   transform: none;
   font-size: 24px;
@@ -1495,6 +2023,20 @@ body.force-small nav h1 {
   text-align: center;
   white-space: nowrap;
 }
+
+nav h1.logo img {
+  width: 110px;
+}
+
+nav h1.logo,
+nav.scrolled h1.logo,
+body.force-small nav h1.logo,
+body.home-active nav h1.logo {
+  position: static;
+  transform: none;
+  margin: 0 auto;
+}
+
 
 nav ul {
   display: none;
@@ -1524,9 +2066,51 @@ nav ul .tab-btn {
   padding: 6px 4px;
 }
 
+body.force-small nav h1.logo img,
+body.home-active nav h1.logo img,
+nav.scrolled h1.logo img {
+  width: 110px;
+}
+
+.welcome-modal {
+  padding: 18px;
+  align-items: center;
+}
+
+.welcome-card {
+  width: 100%;
+  max-width: 360px;
+  padding: 28px 22px;
+  border-radius: 30px;
+}
+
+.welcome-card h2 {
+  font-size: 28px;
+  letter-spacing: -1.5px;
+  margin-bottom: 10px;
+}
+
+.welcome-text {
+  font-size: 13px;
+  line-height: 1.3;
+  margin-bottom: 18px;
+  max-width: 260px;
+}
+
+.welcome-login-btn {
+  height: 42px;
+  font-size: 13px;
+}
+
+.welcome-secondary {
+  font-size: 12px;
+}
+
 .login-btn {
   font-size: 13px;
   padding: 9px 14px;
+  position: relative;
+  z-index: 101;
 }
 
   h1, h2, h3 {
@@ -1561,6 +2145,14 @@ nav ul .tab-btn {
     margin-bottom: 16px;
   }
 
+  .routine-delete-circle {
+    width: 30px;
+    height: 30px;
+    top: 12px;
+    right: 12px;
+    font-size: 13px;
+  }
+  
   .btn {
     font-size: 13px;
     padding: 0.9em 1.3em;
@@ -1572,11 +2164,189 @@ nav ul .tab-btn {
     border-radius: 20px;
   }
 
-  .contact,
+
+.routines-header {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.routines-header h2 {
+  font-size: 32px;
+  letter-spacing: -1.5px;
+}
+
+.routines-subtitle {
+  font-size: 14px;
+}
+
+.routine-empty-card {
+  padding: 18px;
+  border-radius: 20px;
+}
+
+.routine-empty-card h3 {
+  font-size: 20px;
+}
+
+
+  .routine-form {
+    width: 100%;
+    max-width: 100%;
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .routine-form input,
+  .routine-form textarea {
+    font-size: 13px;
+    height: 42px;
+  }
+
+  .routine-form textarea {
+    height: 80px;
+  }
+
+.routine-card,
+.routine-detail-card {
+    padding: 18px;
+    border-radius: 20px;
+}
+
+  .routine-card h3,
+  .routine-detail-card h3 {
+    font-size: 20px;
+  }
+
+  .routine-card p {
+    font-size: 13px;
+  }
+
+  .routine-detail-card p {
+    font-size: 14px;
+  }
+
+
+  /* Botó afegir exercici */
+  .routine-detail-card .form-btn {
+    font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 20px;
+  }
+
+.routines-grid {
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.exercise-card {
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 14px;
+  border-radius: 18px;
+  
+}
+
+.exercise-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.exercise-actions button {
+  border: none;
+  background: white;
+  color: #333;
+  padding: 9px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+  flex: 1;
+}
+
+
+  .exercise-title-row h4 {
+    font-size: 16px;
+  }
+
+  .exercise-card p {
+    font-size: 13px;
+  }
+
+  .exercise-card small {
+    font-size: 12px;
+  }
+
+  /* Drag icon més petit */
+  .drag-handle {
+    font-size: 18px;
+  }
+
+  /* Botons editar / eliminar */
+  .exercise-actions {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .exercise-actions button {
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: 18px;
+    flex: 1;
+  }
+
+  .routine-detail-card {
+  padding: 14px;
+  border-radius: 18px;
+}
+
+.exercise-card {
+  padding: 11px 12px;
+  gap: 8px;
+}
+
+.exercise-title-row h4 {
+  font-size: 15px;
+}
+
+.exercise-card p {
+  font-size: 12px;
+}
+
+.exercise-actions button {
+  font-size: 12px;
+  padding: 7px 10px;
+}
+
+.routine-detail-card .form-btn {
+  font-size: 13px;
+  padding: 9px 14px;
+}
+
+  /* Header (Nova rutina, login...) */
+  .form-btn {
+    font-size: 14px;
+    padding: 10px 16px;
+  }
+
+  /* Tornar */
+    .routine-back-btn {
+    font-size: 14px;
+  }
+
+  .exercise-actions .exercise-delete-btn {
+    background: #f0d6d6;
+    color: #8a1f1f;
+  }
+
+   .routines-section,
   .calendar-section,
   .progress-section,
   .ai-section {
-    padding: 115px 5% 50px;
+    min-height: calc(100vh - 90px);
+    padding-bottom: 120px;
   }
 
   .contact {
@@ -1652,13 +2422,21 @@ nav ul .tab-btn {
     font-size: 11px;
   }
 
-  .training-stripes {
-    left: 6px;
-    right: 6px;
-    bottom: 6px;
-    height: 10px;
-    gap: 2px;
-  }
+.training-stripes {
+  left: 7px;
+  right: 7px;
+  bottom: 8px;
+  height: 10px;
+  gap: 4px;
+  overflow: visible;
+}
+
+.training-stripe {
+  height: 6px;
+  flex: 1 1 auto;
+  min-width: 8px;
+  border-radius: 999px;
+}
 
   .legend {
     flex-wrap: wrap;
@@ -1745,10 +2523,7 @@ nav ul .tab-btn {
 
   .footer {
     font-size: 11px;
-    padding: 22px 5%;
+    padding-bottom: 0px;
   }
-}
 
-.desktop-lang {
-  display: flex;
 }
