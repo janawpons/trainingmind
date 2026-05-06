@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Training Mind</title>
-  <meta name="description" content="Entrena millor amb Training Mind. Registra, analitza i millora el teu rendiment amb una app dissenyada per mantenir-te constant i motivada."><link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="style.css"/>
   <link rel="icon" type="image/png" href="images/logo.jpg">
 
   <!-- Google tag (gtag.js) -->
@@ -32,12 +32,14 @@
     </div>
   </div>
 
-  <h1 onclick="anarInici()">training mind</h1>
-
+  <h1 class="logo" onclick="anarInici()">
+    <img src="images/nom.png" alt="Training Mind">
+  </h1>
   <div class="nav-right">
     <ul id="nav-menu">
       <button class="tab-btn active" onclick="canviarTab('inici', this)" data-i18n="navHome">Inici</button>
       <button class="tab-btn" onclick="canviarTab('calendariPage', this)" data-i18n="navCalendar">Calendari</button>
+      <button class="tab-btn" onclick="canviarTab('rutinesPage', this)" data-i18n="navRoutines">Rutines</button>
       <button class="tab-btn" onclick="canviarTab('evolucioPage', this)" data-i18n="navEvolution">Evolució</button>
       <button class="tab-btn" onclick="canviarTab('ai', this)" data-i18n="navCoach">AI Coach</button>
 
@@ -108,11 +110,22 @@
 
       <select id="tipus" required>
         <option value="" data-i18n="typePlaceholder">Tipus</option>
-        <option data-i18n="typePilates">Pilates</option>
-        <option data-i18n="typeBarre">Barre</option>
-        <option data-i18n="typeStrength">Força</option>
-        <option data-i18n="typeCardio">Cardio</option>
+        <option value="Pilates" data-i18n="typePilates">Pilates</option>
+        <option value="Barre" data-i18n="typeBarre">Barre</option>
+        <option value="Força" data-i18n="typeStrength">Força</option>
+        <option value="Cardio" data-i18n="typeCardio">Cardio</option>
+        <option value="Yoga" data-i18n="typeYoga">Yoga</option>
+        <option value="Córrer" data-i18n="typeRunning">Córrer</option>
+        <option value="Altres" data-i18n="typeOther">Altres</option>
       </select>
+
+      <input 
+        type="text" 
+        id="tipus-altres" 
+        data-i18n-placeholder="typeOtherPlaceholder"
+        placeholder="Escriu el teu esport..." 
+        style="display:none;" 
+      />
 
       <select id="lloc" required>
         <option value="" data-i18n="placePlaceholder">Lloc</option>
@@ -180,10 +193,13 @@
         <!-- FILA 2 -->
         <div class="legend-row">
           <div class="legend">
-            <span><b class="type-pilates-dot"></b> Pilates</span>
-            <span><b class="type-barre-dot"></b> Barre</span>
-            <span><b class="type-strength-dot"></b> <span data-i18n="typeStrength">Força</span></span>
-            <span><b class="type-cardio-dot"></b> Cardio</span>
+            <span><b style="background:#b99ade"></b> <span data-i18n="typePilates">Pilates</span></span>
+            <span><b style="background:#f3a8bd"></b> <span data-i18n="typeBarre">Barre</span></span>
+            <span><b style="background:#9fb3f5"></b> <span data-i18n="typeStrength">Força</span></span>
+            <span><b style="background:#f0bc8a"></b> <span data-i18n="typeCardio">Cardio</span></span>
+            <span><b style="background:#a8d8b9"></b> <span data-i18n="typeYoga">Yoga</span></span>
+            <span><b style="background:#ffcf7a"></b> <span data-i18n="typeRunning">Córrer</span></span>
+            <span><b style="background:#cfcfcf"></b> <span data-i18n="typeOtherLegend">Altres (color automàtic)</span></span>
           </div>
         </div>
 
@@ -201,6 +217,58 @@
         <div id="annual-calendar" class="annual-calendar"></div>
       </div>
 
+    </div>
+  </section>
+</section>
+
+<section id="rutinesPage" class="tab">
+  <section class="routines-section">
+    <div class="routines-header">
+      <div>
+        <p class="tag dark-tag" data-i18n="routinesTag">Rutines</p>
+        <h2 data-i18n="routinesTitle">Les teves rutines</h2>
+        <p class="routines-subtitle" data-i18n="routinesSubtitle">
+          Organitza les teves rutines per esport i guarda els exercicis que fas habitualment.
+        </p>
+      </div>
+
+      <button class="form-btn" type="button" onclick="obrirFormRutina()">
+        + Nova rutina
+      </button>
+    </div>
+
+    <form id="routine-form" class="routine-form" style="display:none;">
+      <input type="text" id="routine-sport" placeholder="Esport / tipus d'entrenament" required>
+      <input type="text" id="routine-title" placeholder="Nom de la rutina" required>
+      <textarea id="routine-notes" placeholder="Notes generals..."></textarea>
+
+      <div class="routine-form-actions">
+        <button type="submit" class="form-btn">Guardar rutina</button>
+        <button type="button" class="routine-cancel-btn" onclick="tancarFormRutina()">Cancel·lar</button>
+      </div>
+    </form>
+
+    <form id="exercise-form" class="routine-form" style="display:none;">
+      <input type="text" id="exercise-name" placeholder="Nom de l’exercici" required>
+      <input type="number" id="exercise-sets" placeholder="Sèries">
+      <input type="number" id="exercise-reps" placeholder="Repeticions">
+      <input type="number" id="exercise-weight" placeholder="Pes (kg)">
+      <input type="text" id="exercise-time" placeholder="Temps / durada">
+      <textarea id="exercise-notes" placeholder="Notes..."></textarea>
+
+      <div class="routine-form-actions">
+        <button type="submit" class="form-btn">Guardar exercici</button>
+        <button type="button" class="routine-cancel-btn" onclick="tancarFormExercici()">Cancel·lar</button>
+      </div>
+    </form>
+
+    <div id="routines-grid" class="routines-grid">
+      <div class="routine-empty-card">
+        <h3 data-i18n="routinesEmptyTitle">Encara no tens rutines</h3>
+        <p data-i18n="routinesEmptyText">
+          Crea la teva primera rutina per esport: Pilates, Cardio, Força, Rem...
+        </p>
+      </div>
     </div>
   </section>
 </section>
@@ -294,7 +362,41 @@
     </div>
   </div>
 </section>
+
+<section id="perfilPage" class="tab">
+  <section class="profile-section">
+    <h2 data-i18n="profileTitle">El teu perfil</h2>
+
+    <div class="profile-card">
+      <img id="profile-photo" src="images/logo.jpg" alt="Foto de perfil" data-i18n-alt="profilePhotoAlt">
+      <h3 id="profile-name">Usuari</h3>
+      <p id="profile-email">email@email.com</p>
+
+      <div class="profile-login-actions">
+        <button class="login-btn" id="profile-login-btn" onclick="login()">Login</button>
+        <button class="login-btn" id="profile-logout-btn" onclick="logout()" style="display:none;">Logout</button>
+      </div>
+    </div>
+
+    <div class="profile-language-switcher">
+      <button onclick="setLanguage('ca')">CA</button>
+      <button onclick="setLanguage('es')">ES</button>
+      <button onclick="setLanguage('en')">EN</button>
+    </div>
+
+  </section>
+</section>
+
 </main>
+
+<div id="delete-routine-modal" class="modal">
+  <div class="modal-box">
+    <h3 data-i18n="deleteRoutineTitle">Eliminar rutina?</h3>
+    <p data-i18n="deleteRoutineText">Segur que vols eliminar aquesta rutina i tots els seus exercicis?</p>
+    <button id="cancel-delete-routine" class="modal-cancel" data-i18n="cancelButton">Cancel·lar</button>
+    <button id="confirm-delete-routine" class="modal-delete" data-i18n="deleteButton">Eliminar</button>
+  </div>
+</div>
 
 <!-- MODAL CONFIRMACIÓ -->
 <div id="delete-modal" class="modal">
@@ -309,8 +411,8 @@
 
 <!-- TOAST UNDO -->
 <div id="undo-toast" class="undo-toast">
-  Entrenament eliminat
-  <button id="undo-btn">Desfer</button>
+  <span data-i18n="trainingDeleted">Entrenament eliminat</span>
+  <button id="undo-btn" data-i18n="undoButton">Desfer</button>
 </div>
 
 <div id="toast" class="toast"></div>
@@ -322,6 +424,40 @@
       <a href="mailto:janapons@gmail.com">janapons@gmail.com</a>
     </p>
 </footer>
+
+<div id="welcome-modal" class="welcome-modal">
+  <div class="welcome-card">
+    <button class="welcome-close" onclick="tancarWelcome()">×</button>
+
+    <p class="welcome-small">Training Mind</p>
+    <h2 data-i18n="welcomeTitle">Benvinguda</h2>
+
+    <p class="welcome-text" data-i18n="welcomeText">
+      Registra els teus entrenaments, consulta el calendari i segueix la teva evolució.
+    </p>
+
+    <button class="welcome-login-btn" onclick="login()" data-i18n="welcomeLogin">
+      Continuar amb Google
+    </button>
+
+    <button class="welcome-secondary" onclick="tancarWelcome()" data-i18n="welcomeSkip">
+      Continuar sense iniciar sessió
+    </button>
+  </div>
+</div>
+
+<button class="calendar-floating-btn" onclick="canviarTab('calendariPage')">
+  📅
+</button>
+<nav class="mobile-bottom-nav">
+  <button onclick="canviarTab('inici')">⌂<span data-i18n="navHome">Inici</span></button>
+  <button onclick="canviarTab('evolucioPage')">↗<span data-i18n="navEvolution">Progrés</span></button>
+
+  <button class="mobile-add-btn" onclick="anarARegistrarAvui()">＋</button>
+
+  <button onclick="canviarTab('rutinesPage')">★<span data-i18n="navRoutines">Rutines</span></button>
+  <button onclick="canviarTab('perfilPage')">◌<span data-i18n="navProfile">Perfil</span></button>
+</nav>
 
 <script src="script.js"></script>
 <script type="module" src="firebase.js"></script>
