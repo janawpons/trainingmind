@@ -872,11 +872,13 @@ async function eliminarEntrenamentFirebase(id) {
 prevMonthBtn.addEventListener("click", () => {
   currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
   pintarCalendari();
+  actualitzarProgres();
 });
 
 nextMonthBtn.addEventListener("click", () => {
   currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
   pintarCalendari();
+  actualitzarProgres();
 });
 
 const intensitySlider = document.getElementById("intensitat");
@@ -1343,8 +1345,10 @@ function actualitzarProgres() {
 
   document.getElementById("weekly-progress-fill").style.width = `${percent}%`;
 
-  document.getElementById("monthly-goal-message").textContent =
-    calcularObjectiuMensual();
+  const monthlyGoalMessage = document.getElementById("monthly-goal-message");
+if (monthlyGoalMessage) {
+  monthlyGoalMessage.textContent = calcularObjectiuMensual();
+}
 
   pintarMarquesObjectiu();
   pintarGraficaIntensitat();
