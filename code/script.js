@@ -7,7 +7,12 @@ let currentUser = null;
 let editingId = null;
 let weeklyGoal = Number(localStorage.getItem("weeklyGoal")) || 4;
 let currentCalendarDate = new Date();
-
+//let routines = JSON.parse(localStorage.getItem("routines-demo")) || [];
+let routines = []; // per la web real
+let activeRoutineId = null;
+let editingExerciseIndex = null;
+let draggedExerciseIndex = null;
+let pendingDeleteRoutineId = null;
 let pendingDeleteId = null;
 let deletedTraining = null;
 let undoTimeout = null;
@@ -18,6 +23,310 @@ const heroTag = document.querySelector(".hero-content .tag");
 const prevMonthBtn = document.getElementById("prev-month");
 const nextMonthBtn = document.getElementById("next-month");
 const monthName = document.getElementById("month-name");
+
+/* rutines */
+const routineForm = document.getElementById("routine-form");
+const routinesGrid = document.getElementById("routines-grid");
+const exerciseForm = document.getElementById("exercise-form");
+
+function obrirRutina(id) {
+  activeRoutineId = id;
+
+  const routine = routines.find(r => String(r.id) === String(id));
+  if (!routine) return;
+
+  const exercises = routine.exercises || [];
+
+  routinesGrid.innerHTML = `
+    <div class="routine-detail-card full">
+      <button class="routine-back-btn" onclick="tornarLlistaRutines()">← Tornar</button>
+
+      <span class="routine-color big" style="background:${colorTipus(routine.sport)}"></span>
+      <h3>${routine.title}</h3>
+      <p><strong>${routine.sport}</strong></p>
+      <p>${routine.notes || "Sense notes generals"}</p>
+
+      <button class="form-btn" type="button" onclick="obrirFormExercici('${routine.id}')">
+        + Afegir exercici
+      </button>
+
+      <div class="exercises-list">
+        ${exercises.length === 0 ? `
+          <p class="empty-exercises">Encara no tens exercicis en aquesta rutina.</p>
+        ` : exercises.map((ex, index) => `
+          <div class="exercise-card" data-exercise-index="${index}">
+            <div class="exercise-main">
+              <div class="exercise-title-row">
+                <span 
+                  class="drag-handle"
+                  onpointerdown="startExercisePointerDrag(event, '${routine.id}', ${index})"
+                >≡</span>
+                <h4>${ex.name}</h4>
+              </div>
+
+              <p>
+                ${ex.sets ? `${ex.sets} sèries` : ""}
+                ${ex.reps ? ` · ${ex.reps} reps` : ""}
+                ${ex.weight ? ` · ${ex.weight} kg` : ""}
+                ${ex.time ? ` · ${ex.time}` : ""}
+              </p>
+
+              ${ex.notes ? `<small>${ex.notes}</small>` : ""}
+            </div>
+
+            <div class="exercise-actions">
+              <button type="button" onclick="editarExercici('${routine.id}', ${index})">Editar</button>
+              <button type="button" class="exercise-delete-btn" onclick="eliminarExercici('${routine.id}', ${index})">Eliminar</button>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+let pointerDragRoutineId = null;
+let pointerDragStartIndex = null;
+
+function startExercisePointerDrag(event, routineId, index) {
+  event.preventDefault();
+
+  pointerDragRoutineId = routineId;
+  pointerDragStartIndex = index;
+
+  const card = event.target.closest(".exercise-card");
+  if (card) card.classList.add("dragging");
+
+  document.addEventListener("pointerup", finishExercisePointerDrag);
+}
+
+async function finishExercisePointerDrag(event) {
+  document.removeEventListener("pointerup", finishExercisePointerDrag);
+
+  const target = document.elementFromPoint(event.clientX, event.clientY);
+  const targetCard = target?.closest(".exercise-card");
+
+  document.querySelectorAll(".exercise-card").forEach(card => {
+    card.classList.remove("dragging");
+  });
+
+  if (!targetCard) return;
+
+  const targetIndex = Number(targetCard.dataset.exerciseIndex);
+
+  if (
+    pointerDragRoutineId === null ||
+    pointerDragStartIndex === null ||
+    targetIndex === pointerDragStartIndex
+  ) return;
+
+  const routine = routines.find(r => String(r.id) === String(pointerDragRoutineId));
+  if (!routine) return;
+
+  const [movedExercise] = routine.exercises.splice(pointerDragStartIndex, 1);
+  routine.exercises.splice(targetIndex, 0, movedExercise);
+
+  const routineId = pointerDragRoutineId;
+
+  // 🔥 guardar a Firebase
+  await actualitzarRutinaFirebase(routineId, {
+    exercises: routine.exercises
+  });
+
+  pointerDragRoutineId = null;
+  pointerDragStartIndex = null;
+
+  obrirRutina(routineId);
+}
+
+function obrirFormRutina() {
+  routineForm.style.display = "flex";
+  routineForm.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+}
+
+function tancarFormRutina() {
+  routineForm.style.display = "none";
+  routineForm.reset();
+}
+
+routineForm.addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const routine = {
+    sport: document.getElementById("routine-sport").value.trim(),
+    title: document.getElementById("routine-title").value.trim(),
+    notes: document.getElementById("routine-notes").value.trim(),
+    exercises: []
+  };
+
+  await guardarRutinaFirebase(routine);
+
+  tancarFormRutina();
+  mostrarToast("Rutina guardada");
+});
+
+function pintarRutines() {
+  if (!routinesGrid) return;
+
+  if (routines.length === 0) {
+    routinesGrid.innerHTML = `
+      <div class="routine-empty-card">
+        <h3>${t("routinesEmptyTitle")}</h3>
+        <p>${t("routinesEmptyText")}</p>
+      </div>
+    `;
+    return;
+  }
+
+  routinesGrid.innerHTML = routines.map(routine => `
+  <div class="routine-card-wrapper">
+    <button class="routine-card" onclick="obrirRutina('${routine.id}')">
+      <span class="routine-color" style="background:${colorTipus(routine.sport)}"></span>
+      <h3>${routine.sport}</h3>
+      <p>${routine.title}</p>
+      <small>${(routine.exercises || []).length} exercicis</small>
+    </button>
+
+    <button 
+      class="routine-delete-circle" 
+      onclick="event.stopPropagation(); demanarEliminarRutina('${routine.id}')"
+      title="Eliminar rutina"
+    >
+      🗑️
+    </button>
+  </div>
+`).join("");
+}
+
+function demanarEliminarRutina(id) {
+  pendingDeleteRoutineId = id;
+  document.getElementById("delete-routine-modal").classList.add("show");
+}
+
+document.getElementById("cancel-delete-routine").addEventListener("click", () => {
+  pendingDeleteRoutineId = null;
+  document.getElementById("delete-routine-modal").classList.remove("show");
+});
+
+document.getElementById("confirm-delete-routine").addEventListener("click", async () => {
+  if (pendingDeleteRoutineId === null) return;
+
+  await eliminarRutinaFirebase(pendingDeleteRoutineId);
+
+  pendingDeleteRoutineId = null;
+  document.getElementById("delete-routine-modal").classList.remove("show");
+
+  mostrarToast("Rutina eliminada");
+});
+
+function tornarLlistaRutines() {
+  activeRoutineId = null;
+  tancarFormExercici();
+  pintarRutines();
+}
+
+function obrirFormExercici(routineId) {
+  activeRoutineId = routineId;
+  exerciseForm.style.display = "flex";
+  exerciseForm.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+}
+
+function tancarFormExercici() {
+  exerciseForm.style.display = "none";
+  exerciseForm.reset();
+}
+
+exerciseForm.addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const routine = routines.find(r => String(r.id) === String(activeRoutineId));
+  if (!routine) return;
+
+  const exercise = {
+    name: document.getElementById("exercise-name").value.trim(),
+    sets: document.getElementById("exercise-sets").value,
+    reps: document.getElementById("exercise-reps").value,
+    weight: document.getElementById("exercise-weight").value,
+    time: document.getElementById("exercise-time").value.trim(),
+    notes: document.getElementById("exercise-notes").value.trim()
+  };
+
+  if (editingExerciseIndex !== null) {
+  routine.exercises[editingExerciseIndex] = exercise;
+  editingExerciseIndex = null;
+} else {
+  routine.exercises.push(exercise);
+}
+
+await actualitzarRutinaFirebase(activeRoutineId, {
+  exercises: routine.exercises
+});
+
+tancarFormExercici();
+document.querySelector("#exercise-form .form-btn").textContent = "Guardar exercici";
+obrirRutina(activeRoutineId);
+mostrarToast("Exercici guardat");
+});
+
+function editarExercici(routineId, index) {
+  const routine = routines.find(r => String(r.id) === String(routineId));
+  if (!routine) return;
+
+  const ex = routine.exercises[index];
+  if (!ex) return;
+
+  activeRoutineId = routineId;
+  editingExerciseIndex = index;
+
+  document.getElementById("exercise-name").value = ex.name || "";
+  document.getElementById("exercise-sets").value = ex.sets || "";
+  document.getElementById("exercise-reps").value = ex.reps || "";
+  document.getElementById("exercise-weight").value = ex.weight || "";
+  document.getElementById("exercise-time").value = ex.time || "";
+  document.getElementById("exercise-notes").value = ex.notes || "";
+
+  document.querySelector("#exercise-form .form-btn").textContent = "Actualitzar exercici";
+  exerciseForm.style.display = "flex";
+
+  exerciseForm.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  });
+}
+
+
+async function eliminarExercici(routineId, index) {
+  const routine = routines.find(r => String(r.id) === String(routineId));
+  if (!routine) return;
+
+  routine.exercises.splice(index, 1);
+
+  await actualitzarRutinaFirebase(routineId, {
+    exercises: routine.exercises
+  });
+
+  obrirRutina(routineId);
+  mostrarToast("Exercici eliminat");
+}
+
+function anarARegistrarAvui() {
+  canviarTab("inici");
+
+  setTimeout(() => {
+    const avui = new Date().toISOString().split("T")[0];
+    document.getElementById("data").value = avui;
+    document.getElementById("registre").scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }, 100);
+}
 
 /* TRADUCCIÓ */
 const translations = {
@@ -31,6 +340,11 @@ const translations = {
     heroTitle: "Registra els teus entrenaments i entén la teva evolució",
     heroText: "Guarda cada sessió, consulta el calendari i analitza el teu progrés.",
     heroButton: "Registra el teu entrenament",
+
+    welcomeTitle: "Benvinguda",
+    welcomeText: "Registra els teus entrenaments, consulta el calendari i segueix la teva evolució.",
+    welcomeLogin: "Continuar amb Google",
+    welcomeSkip: "Continuar sense iniciar sessió",
 
     registerTag: "Registre",
     registerTitle: "Com ha anat avui?",
@@ -53,6 +367,13 @@ const translations = {
     monthlyGoalDefault: "Aquest mes has complert 0/0 setmanes",
     annualSummary: "Resum anual",
     backCalendar: "Tornar al calendari",
+
+    navRoutines: "Rutines",
+    routinesTag: "Rutines",
+    routinesTitle: "Les teves rutines",
+    routinesSubtitle: "Organitza les teves rutines per esport i guarda els exercicis que fas habitualment.",
+    routinesEmptyTitle: "Encara no tens rutines",
+    routinesEmptyText: "Crea la teva primera rutina per esport: Pilates, Cardio, Força, Rem...",
 
     progressTag: "Progrés",
     progressTitle: "La teva evolució",
@@ -92,6 +413,24 @@ const translations = {
     deleteText: "Segur que vols eliminar aquest entrenament?",
     cancelButton: "Cancel·lar",
 
+    typeYoga: "Yoga",
+    typeRunning: "Córrer",
+    typeOther: "Altres",
+    typeOtherPlaceholder: "Escriu el teu esport...",
+
+        // CA
+    navProfile: "Perfil",
+    profileTitle: "El teu perfil",
+    profilePhotoAlt: "Foto de perfil",
+    deleteRoutineTitle: "Eliminar rutina?",
+    deleteRoutineText: "Segur que vols eliminar aquesta rutina i tots els seus exercicis?",
+    trainingDeleted: "Entrenament eliminat",
+    undoButton: "Desfer",
+    noSession: "Sense sessió",
+    loginPrompt: "Inicia sessió",
+
+    typeOtherLegend: "Altres (color automàtic)",
+
     footerCreated: "Creat per Jana Pons · Training Mind",
     footerContact: "Contacte:"
   },
@@ -106,6 +445,11 @@ const translations = {
     heroTitle: "Registra tus entrenamientos y entiende tu evolución",
     heroText: "Guarda cada sesión, consulta el calendario y analiza tu progreso.",
     heroButton: "Registra tu entrenamiento",
+
+    welcomeTitle: "Bienvenida",
+    welcomeText: "Registra tus entrenamientos, consulta el calendario y sigue tu evolución.",
+    welcomeLogin: "Continuar con Google",
+    welcomeSkip: "Continuar sin iniciar sesión",
 
     registerTag: "Registro",
     registerTitle: "¿Cómo ha ido hoy?",
@@ -128,6 +472,13 @@ const translations = {
     monthlyGoalDefault: "Este mes has cumplido 0/0 semanas",
     annualSummary: "Resumen anual",
     backCalendar: "Volver al calendario",
+
+    navRoutines: "Rutinas",
+    routinesTag: "Rutinas",
+    routinesTitle: "Tus rutinas",
+    routinesSubtitle: "Organiza tus rutinas por deporte y guarda los ejercicios que haces habitualmente.",
+    routinesEmptyTitle: "Aún no tienes rutinas",
+    routinesEmptyText: "Crea tu primera rutina por deporte: Pilates, Cardio, Fuerza, Remo...",
 
     progressTag: "Progreso",
     progressTitle: "Tu evolución",
@@ -166,6 +517,24 @@ const translations = {
     deleteText: "¿Seguro que quieres eliminar este entrenamiento?",
     cancelButton: "Cancelar",
 
+    typeYoga: "Yoga",
+    typeRunning: "Correr",
+    typeOther: "Otros",
+    typeOtherPlaceholder: "Escribe tu deporte...",
+
+    // ES
+    navProfile: "Perfil",
+    profileTitle: "Tu perfil",
+    profilePhotoAlt: "Foto de perfil",
+    deleteRoutineTitle: "¿Eliminar rutina?",
+    deleteRoutineText: "¿Seguro que quieres eliminar esta rutina y todos sus ejercicios?",
+    trainingDeleted: "Entrenamiento eliminado",
+    undoButton: "Deshacer",
+    noSession: "Sin sesión",
+    loginPrompt: "Inicia sesión",
+
+    typeOtherLegend: "Otros (color automático)",
+
     footerCreated: "Creado por Jana Pons · Training Mind",
     footerContact: "Contacto:"
   },
@@ -180,6 +549,11 @@ const translations = {
     heroTitle: "Log your workouts and understand your progress",
     heroText: "Save each session, check the calendar and analyze your progress.",
     heroButton: "Log your workout",
+
+    welcomeTitle: "Welcome",
+    welcomeText: "Log your workouts, check your calendar and follow your progress.",
+    welcomeLogin: "Continue with Google",
+    welcomeSkip: "Continue without signing in",
 
     registerTag: "Log",
     registerTitle: "How did it go today?",
@@ -202,6 +576,13 @@ const translations = {
     monthlyGoalDefault: "This month you completed 0/0 weeks",
     annualSummary: "Year summary",
     backCalendar: "Back to calendar",
+
+    navRoutines: "Routines",
+    routinesTag: "Routines",
+    routinesTitle: "Your routines",
+    routinesSubtitle: "Organize your routines by sport and save the exercises you usually do.",
+    routinesEmptyTitle: "You don’t have routines yet",
+    routinesEmptyText: "Create your first routine by sport: Pilates, Cardio, Strength, Rowing...",
 
     progressTag: "Progress",
     progressTitle: "Your progress",
@@ -241,6 +622,24 @@ const translations = {
     deleteText: "Are you sure you want to delete this workout?",
     cancelButton: "Cancel",
     
+    typeYoga: "Yoga",
+    typeRunning: "Running",
+    typeOther: "Other",
+    typeOtherPlaceholder: "Write your sport...",
+
+    // EN
+    navProfile: "Profile",
+    profileTitle: "Your profile",
+    profilePhotoAlt: "Profile photo",
+    deleteRoutineTitle: "Delete routine?",
+    deleteRoutineText: "Are you sure you want to delete this routine and all its exercises?",
+    trainingDeleted: "Workout deleted",
+    undoButton: "Undo",
+    noSession: "Not signed in",
+    loginPrompt: "Sign in",
+
+    typeOtherLegend: "Other (automatic color)",
+
     footerCreated: "Created by Jana Pons · Training Mind",
     footerContact: "Contact:"
   }
@@ -249,6 +648,27 @@ const translations = {
 function t(key) {
   return translations[currentLang][key] || key;
 }
+
+/* missatge inicial */
+function mostrarWelcomeSiCal() {
+  const modal = document.getElementById("welcome-modal");
+  if (!modal) return;
+
+  const jaTancat = sessionStorage.getItem("welcome-closed");
+
+  if (!currentUser && !jaTancat) {
+    modal.classList.add("show");
+  }
+}
+
+function tancarWelcome() {
+  const modal = document.getElementById("welcome-modal");
+  if (!modal) return;
+
+  modal.classList.remove("show");
+  sessionStorage.setItem("welcome-closed", "true");
+}
+
 
 let currentLang = localStorage.getItem("language") || "ca";
 
@@ -271,6 +691,13 @@ function setLanguage(lang) {
     }
   });
 
+  document.querySelectorAll("[data-i18n-alt]").forEach(element => {
+  const key = element.dataset.i18nAlt;
+  if (translations[lang] && translations[lang][key]) {
+    element.alt = translations[lang][key];
+  }
+});
+
   if (typeof actualitzarTitolMes === "function") {
     actualitzarTitolMes();
   }
@@ -284,8 +711,16 @@ function setLanguage(lang) {
     pintarResumAnual();
   }
 
-  if (typeof pintarGraficaIntensitat === "function") {
+    if (typeof pintarGraficaIntensitat === "function") {
     pintarGraficaIntensitat();
+  }
+
+  const profileName = document.getElementById("profile-name");
+  const profileEmail = document.getElementById("profile-email");
+
+  if (!currentUser) {
+    if (profileName) profileName.textContent = t("noSession");
+    if (profileEmail) profileEmail.textContent = t("loginPrompt");
   }
 }
 
@@ -312,6 +747,58 @@ function getUserTrainingsCollection() {
   return window.collection(window.firebaseDB, "users", currentUser.uid, "trainings");
 }
 
+function getUserRoutinesCollection() {
+  return window.collection(window.firebaseDB, "users", currentUser.uid, "routines");
+}
+
+async function carregarRutinesFirebase() {
+  if (!currentUser) return;
+
+  const q = window.query(
+    getUserRoutinesCollection(),
+    window.orderBy("createdAt", "asc")
+  );
+
+  const snapshot = await window.getDocs(q);
+
+  routines = snapshot.docs.map(docSnap => ({
+    id: docSnap.id,
+    ...docSnap.data()
+  }));
+
+  pintarRutines();
+}
+
+async function guardarRutinaFirebase(routine) {
+  if (!currentUser) {
+    mostrarToast("Has de fer login per guardar rutines");
+    return;
+  }
+
+  await window.addDoc(getUserRoutinesCollection(), {
+    ...routine,
+    createdAt: Date.now()
+  });
+
+  await carregarRutinesFirebase();
+}
+
+async function actualitzarRutinaFirebase(id, data) {
+  if (!currentUser) return;
+
+  const ref = window.doc(window.firebaseDB, "users", currentUser.uid, "routines", String(id));
+  await window.updateDoc(ref, data);
+  await carregarRutinesFirebase();
+}
+
+async function eliminarRutinaFirebase(id) {
+  if (!currentUser) return;
+
+  const ref = window.doc(window.firebaseDB, "users", currentUser.uid, "routines", String(id));
+  await window.deleteDoc(ref);
+  await carregarRutinesFirebase();
+}
+
 async function carregarEntrenamentsFirebase() {
   if (!currentUser) return;
 
@@ -331,6 +818,7 @@ async function carregarEntrenamentsFirebase() {
   actualitzarProgres();
 }
 
+// WEB REAL 
 async function guardarEntrenamentFirebase(training) {
   if (!currentUser) {
     mostrarToast("Has de fer login per guardar entrenaments");
@@ -341,6 +829,27 @@ async function guardarEntrenamentFirebase(training) {
   await carregarEntrenamentsFirebase();
 }
 
+/* EXECUTABLE 
+async function guardarEntrenamentFirebase(training) {
+  if (!currentUser) {
+    trainings.push({
+      id: Date.now(),
+      ...training
+    });
+
+    localStorage.setItem("trainings-demo", JSON.stringify(trainings));
+
+    pintarCalendari();
+    actualitzarProgres();
+
+    mostrarToast("Entrenament guardat en mode demo");
+    return;
+  }
+
+  await window.addDoc(getUserTrainingsCollection(), training);
+  await carregarEntrenamentsFirebase();
+}*/
+
 async function actualitzarEntrenamentFirebase(id, training) {
   if (!currentUser) return;
 
@@ -350,7 +859,10 @@ async function actualitzarEntrenamentFirebase(id, training) {
 }
 
 async function eliminarEntrenamentFirebase(id) {
-  if (!currentUser) return;
+  if (!currentUser) {
+    mostrarToast("Has de fer login per eliminar entrenaments");
+    return;
+  }
 
   const ref = window.doc(window.firebaseDB, "users", currentUser.uid, "trainings", String(id));
   await window.deleteDoc(ref);
@@ -428,6 +940,20 @@ function canviarTab(tabId, boto = null) {
 
 /* FORMULARI */
 
+const tipusSelect = document.getElementById("tipus");
+const tipusAltresInput = document.getElementById("tipus-altres");
+
+tipusSelect.addEventListener("change", () => {
+  if (tipusSelect.value === "Altres") {
+    tipusAltresInput.style.display = "block";
+    tipusAltresInput.required = true;
+  } else {
+    tipusAltresInput.style.display = "none";
+    tipusAltresInput.required = false;
+    tipusAltresInput.value = "";
+  }
+});
+
 form.addEventListener("submit", async function(e) {
   e.preventDefault();
 
@@ -436,7 +962,9 @@ form.addEventListener("submit", async function(e) {
   const training = {
     id: editingId !== null ? editingId : Date.now(),
     data: document.getElementById("data").value,
-    tipus: document.getElementById("tipus").value,
+    tipus: document.getElementById("tipus").value === "Altres"
+      ? document.getElementById("tipus-altres").value.trim()
+      : document.getElementById("tipus").value,
     lloc: document.getElementById("lloc").value,
     durada: Number(document.getElementById("durada").value),
     intensitat: Number(document.getElementById("intensitat").value),
@@ -469,6 +997,10 @@ form.addEventListener("submit", async function(e) {
   actualitzarProgres();
   amagarDetall();
   form.reset();
+
+  tipusAltresInput.style.display = "none";
+  tipusAltresInput.required = false;
+  tipusAltresInput.value = "";
 
   mostrarToast(isEditing ? "Entrenament actualitzat" : "Entrenament guardat");
   
@@ -538,7 +1070,13 @@ function pintarCalendari() {
         <strong class="day-number">${dia}</strong>
         <div class="training-stripes">
           ${trainingsDia.map(t => `
-            <span class="training-stripe ${classeTipus(t.tipus)} ${classeLloc(t.lloc)}"></span>
+            <span 
+              class="training-stripe"
+              style="
+                background:${colorTipus(t.tipus)};
+                ${estilContorn(t.lloc, colorTipus(t.tipus))}
+              "
+            ></span>
           `).join("")}
         </div>
       `;
@@ -577,12 +1115,69 @@ function pintarCalendari() {
   }
 }
 
+function colorTipus(tipus) {
+  const tipusNormalitzat = tipus.trim().toLowerCase();
+
+  const colorsFixos = {
+    "pilates": "#b99ade",
+    "barre": "#f3a8bd",
+    "força": "#9fb3f5",
+    "forca": "#9fb3f5",
+    "cardio": "#f0bc8a",
+    "yoga": "#a8d8b9",
+    "córrer": "#ffcf7a",
+    "correr": "#ffcf7a",
+    "rem": "#9fb3f5"
+  };
+
+  if (colorsFixos[tipusNormalitzat]) return colorsFixos[tipusNormalitzat];
+
+  const colorsPersonalitzats = [
+    "#cdb4db",
+    "#ffc8dd",
+    "#bde0fe",
+    "#b8f2e6",
+    "#f6d6ad",
+    "#d0f4de",
+    "#e4c1f9",
+    "#ffcad4"
+  ];
+
+  let hash = 0;
+
+  for (let i = 0; i < tipusNormalitzat.length; i++) {
+    hash = tipusNormalitzat.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  return colorsPersonalitzats[Math.abs(hash) % colorsPersonalitzats.length];
+}
+
+function estilContorn(lloc, color) {
+  const isMobile = window.innerWidth <= 600;
+
+  if (lloc === "gymclass") {
+    return isMobile
+      ? `outline: 1.5px solid ${color}; outline-offset: 1px;`
+      : `outline: 3px solid ${color}; outline-offset: 2px;`;
+  }
+
+  if (lloc === "outdoor") {
+    return isMobile
+      ? `outline: 1.5px dotted ${color}; outline-offset: 1px;`
+      : `outline: 3px dotted ${color}; outline-offset: 2px;`;
+  }
+
+  return "";
+}
+
 function classeTipus(tipus) {
   if (tipus === "Pilates") return "type-pilates";
   if (tipus === "Barre") return "type-barre";
   if (tipus === "Força") return "type-strength";
   if (tipus === "Cardio") return "type-cardio";
-  return "type-default";
+  if (tipus === "Yoga") return "type-yoga";
+  if (tipus === "Córrer") return "type-running";
+  return "type-other";
 }
 
 function classeLloc(lloc) {
@@ -708,17 +1303,15 @@ function mostrarUndoToast() {
   }, 5000);
 }
 
-document.getElementById("undo-btn").addEventListener("click", () => {
-  if (!deletedTraining) return;
+document.getElementById("undo-btn").addEventListener("click", async () => {
+  if (!deletedTraining || !currentUser) return;
 
-  trainings.push(deletedTraining);
-  localStorage.setItem("trainings", JSON.stringify(trainings));
+  const trainingToRestore = { ...deletedTraining };
+  delete trainingToRestore.id;
 
-  pintarCalendari();
-  actualitzarProgres();
+  await guardarEntrenamentFirebase(trainingToRestore);
 
   document.getElementById("undo-toast").classList.remove("show");
-
   deletedTraining = null;
   clearTimeout(undoTimeout);
 });
@@ -761,20 +1354,34 @@ function calcularObjectiuMensual() {
   const any = currentCalendarDate.getFullYear();
   const mes = currentCalendarDate.getMonth();
 
+  const avui = new Date();
+  const esMesActual =
+    any === avui.getFullYear() &&
+    mes === avui.getMonth();
+
+  const ultimDiaAComptar = esMesActual
+    ? avui.getDate()
+    : new Date(any, mes + 1, 0).getDate();
+
   const setmanes = {};
+
+  for (let dia = 1; dia <= ultimDiaAComptar; dia++) {
+    const data = new Date(any, mes, dia);
+    const dilluns = obtenirDilluns(data);
+    const clau = dilluns.toISOString().split("T")[0];
+
+    if (!setmanes[clau]) {
+      setmanes[clau] = 0;
+    }
+  }
 
   trainings.forEach(t => {
     const data = new Date(t.data + "T00:00:00");
 
     if (data.getFullYear() !== any || data.getMonth() !== mes) return;
+    if (data.getDate() > ultimDiaAComptar) return;
 
-    const dilluns = new Date(data);
-    const diaSetmana = data.getDay();
-    const diferencia = diaSetmana === 0 ? -6 : 1 - diaSetmana;
-
-    dilluns.setDate(data.getDate() + diferencia);
-    dilluns.setHours(0, 0, 0, 0);
-
+    const dilluns = obtenirDilluns(data);
     const clau = dilluns.toISOString().split("T")[0];
 
     if (!setmanes[clau]) {
@@ -785,9 +1392,21 @@ function calcularObjectiuMensual() {
   });
 
   const totalsSetmanes = Object.keys(setmanes).length;
-  const setmanesComplertes = Object.values(setmanes).filter(total => total >= weeklyGoal).length;
+  const setmanesComplertes = Object.values(setmanes)
+    .filter(total => total >= weeklyGoal).length;
 
   return `Aquest mes has complert ${setmanesComplertes}/${totalsSetmanes} setmanes`;
+}
+
+function obtenirDilluns(data) {
+  const dilluns = new Date(data);
+  const diaSetmana = dilluns.getDay();
+  const diferencia = diaSetmana === 0 ? -6 : 1 - diaSetmana;
+
+  dilluns.setDate(dilluns.getDate() + diferencia);
+  dilluns.setHours(0, 0, 0, 0);
+
+  return dilluns;
 }
 
 function calcularSessionsSetmanaActual() {
@@ -840,6 +1459,14 @@ function mostrarToast(text) {
   setTimeout(() => {
     toast.classList.remove("show");
   }, 2200);
+}
+
+function comprovarObjectiuSetmanalAssolit() {
+  const sessionsSetmana = calcularSessionsSetmanaActual();
+
+  if (sessionsSetmana === weeklyGoal) {
+    mostrarToast("Felicitats! Has completat el teu objectiu setmanal ✨ Segueix així!");
+  }
 }
 
 /* COACH PRO GUIAT */
@@ -1397,26 +2024,61 @@ window.addEventListener("firebase-ready", () => {
   window.onAuthStateChanged(window.firebaseAuth, async user => {
     currentUser = user;
 
+    const loginBtn = document.getElementById("login-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+
+    const profileLoginBtn = document.getElementById("profile-login-btn");
+    const profileLogoutBtn = document.getElementById("profile-logout-btn");
+
+    const profileName = document.getElementById("profile-name");
+    const profileEmail = document.getElementById("profile-email");
+    const profilePhoto = document.getElementById("profile-photo");
+
     if (user) {
-      document.getElementById("login-btn").style.display = "none";
-      document.getElementById("logout-btn").style.display = "inline-block";
+      if (loginBtn) loginBtn.style.display = "none";
+      if (logoutBtn) logoutBtn.style.display = "inline-block";
+
+      if (profileLoginBtn) profileLoginBtn.style.display = "none";
+      if (profileLogoutBtn) profileLogoutBtn.style.display = "block";
+
+      tancarWelcome();
+
+      if (profileName) profileName.textContent = user.displayName || "Usuari";
+      if (profileEmail) profileEmail.textContent = user.email || "";
+      if (profilePhoto && user.photoURL) profilePhoto.src = user.photoURL;
 
       await carregarEntrenamentsFirebase();
+      await carregarRutinesFirebase();
+
     } else {
-      document.getElementById("login-btn").style.display = "inline-block";
-      document.getElementById("logout-btn").style.display = "none";
+      if (loginBtn) loginBtn.style.display = "inline-block";
+      if (logoutBtn) logoutBtn.style.display = "none";
+
+      if (profileLoginBtn) profileLoginBtn.style.display = "block";
+      if (profileLogoutBtn) profileLogoutBtn.style.display = "none";
+
+      if (profileName) profileName.textContent = t("noSession");
+      if (profileEmail) profileEmail.textContent = t("loginPrompt");
+      if (profilePhoto) profilePhoto.src = "images/logo.jpg";
+
+      //trainings = JSON.parse(localStorage.getItem("trainings-demo")) || [];
 
       trainings = [];
+      routines = [];
+      pintarRutines();
+
       pintarCalendari();
       actualitzarProgres();
       amagarDetall();
+      mostrarWelcomeSiCal();
     }
   });
 });
 
-/* INICI */
 pintarCalendari();
 actualitzarProgres();
+pintarRutines();
+comprovarObjectiuSetmanalAssolit();
 animarHero();
 document.body.classList.add("home-active");
 setLanguage(currentLang);
